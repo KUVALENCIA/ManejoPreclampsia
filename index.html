@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manejo de Hipertensión en el Embarazo - MFM & UCI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --alert-color: #e74c3c;
+            --bg-color: #ecf0f1;
+            --calc-color: #8e44ad;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: var(--primary-color); }
+        h1 { text-align: center; }
+        .section-title {
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .checkbox-group input {
+            margin-right: 10px;
+            transform: scale(1.5);
+        }
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+            width: 100%;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+        button:hover { background-color: #2980b9; }
+        .btn-export { background-color: var(--success-color); width: auto; margin: 5px; }
+        .btn-export:hover { background-color: #2ecc71; }
+        
+        .calculator-box {
+            background-color: #f4f0f8;
+            border-left: 5px solid var(--calc-color);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 5px 5px 0;
+        }
+        .calc-result {
+            background-color: white;
+            padding: 15px;
+            border: 1px dashed var(--calc-color);
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 1.1em;
+            white-space: pre-line;
+        }
+        
+        #resultado {
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 5px;
+            display: none;
+            background-color: #f9f9f9;
+        }
+        .disclaimer { font-size: 0.8em; color: #7f8c8d; text-align: center; margin-top: 20px; }
+        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .flex-row .form-group { flex: 1; min-width: 150px; }
+    </style>
+
+    <link rel="manifest" href="manifest.json">
+    
+    <meta name="theme-color" content="#2c3e50">
+    
+    <link rel="apple-touch-icon" href="icono.svg">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registrado con éxito con el alcance:', registration.scope);
+            })
+            .catch(err => {
+              console.log('Fallo al registrar el ServiceWorker:', err);
+            });
+        });
+      }
+    </script>
+    </head>
+<body>
+
+<div class="container">
+    <h1>Asistente Clínico: THE</h1>
+    <p style="text-align: center;">Manejo Materno-Fetal y Cuidados Críticos</p>
+
+    <h2 class="section-title">Datos Clínicos</h2>
+    <div class="flex-row">
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="nombre" placeholder="Ej. María Pérez">
+        </div>
+        <div class="form-group">
+            <label>Edad:</label>
+            <input type="number" id="edad" placeholder="Años">
+        </div>
+        <div class="form-group">
+            <label>Semanas:</label>
+            <input type="number" id="semanas" placeholder="SDG">
+        </div>
+    </div>
+    
+    <div class="flex-row">
+        <div class="form-group">
+            <label>Peso (kg):</label>
+            <input type="number" id="peso" oninput="calcularIMC()">
+        </div>
+        <div class="form-group">
+            <label>Talla (m):</label>
+            <input type="number" id="talla" step="0.01" oninput="calcularIMC()">
+        </div>
+        <div class="form-group">
+            <label>IMC:</label>
+            <input type="text" id="imc" readonly style="background-color: #e9ecef;">
+        </div>
+    </div>
+
+    <div class="flex-row">
+        <div class="form-group">
+            <label>TA Sistólica:</label>
+            <input type="number" id="tas" placeholder="mmHg">
+        </div>
+        <div class="form-group">
+            <label>TA Diastólica:</label>
+            <input type="number" id="tad" placeholder="mmHg">
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 15px;">
+        <div class="checkbox-group">
+            <input type="checkbox" id="sintomasSeveridad"> 
+            <label for="sintomasSeveridad">Criterios de severidad (Cefalea, acúfenos, epigastralgia, laboratorios alterados)</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="convulsiones"> 
+            <label for="convulsiones" style="color: var(--alert-color);">Convulsiones (Eclampsia)</label>
+        </div>
+    </div>
+
+    <button onclick="generarPlan()">Generar Plan de Manejo Clínico</button>
+
+    <div class="calculator-box">
+        <h2 style="color: var(--calc-color); margin-top: 0;">Calculadoras y Algoritmos</h2>
+        <div class="form-group">
+            <label>Seleccione Herramienta:</label>
+            <select id="tipoMedicamento" onchange="mostrarCalculadora()">
+                <option value="">-- Seleccionar --</option>
+                <option value="maduracion">Maduración Pulmonar (Esquema y Rescate)</option>
+                <option value="hellp">Alerta: Síndrome de HELLP (Laboratorios)</option>
+                <option value="ipc">Índice Proteína/Creatinina (Orina)</option>
+                <option value="mgso4">Sulfato de Magnesio (Esquema Zuspan)</option>
+                <option value="labetalol">Labetalol IV (Esquema de Bolos)</option>
+                <option value="hidralazina">Hidralazina IV (Bolos)</option>
+            </select>
+        </div>
+        
+        <div id="areaCalculo"></div>
+    </div>
+
+    <div id="resultado">
+        <div id="contenido-reporte"></div>
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="btn-export" onclick="exportarPDF()">PDF</button>
+            <button class="btn-export" style="background-color: #2b5797;" onclick="exportarWord()">Word</button>
+            <button class="btn-export" style="background-color: #25D366;" onclick="enviarWhatsApp()">WhatsApp</button>
+        </div>
+    </div>
+
+    <p class="disclaimer">NOTA: Este software es una herramienta de apoyo. El manejo depende del juicio clínico del médico tratante.</p>
+</div>
+
+<script>
+    function calcularIMC() {
+        const peso = parseFloat(document.getElementById('peso').value);
+        const talla = parseFloat(document.getElementById('talla').value);
+        if (peso > 0 && talla > 0) {
+            document.getElementById('imc').value = (peso / (talla * talla)).toFixed(2);
+        } else {
+            document.getElementById('imc').value = "";
+        }
+    }
+
+    // --- LÓGICA DE LAS CALCULADORAS ---
+    function mostrarCalculadora() {
+        const seleccion = document.getElementById('tipoMedicamento').value;
+        const area = document.getElementById('areaCalculo');
+        area.innerHTML = ''; 
+
+        if (seleccion === 'maduracion') {
+            area.innerHTML = `
+                <p style="font-size: 0.9em; color: #555;">Esquemas de inducción de madurez pulmonar fetal con corticosteroides antenatales.</p>
+                <div class="form-group">
+                    <label>Fármaco a utilizar:</label>
+                    <select id="farmacoMaduracion" onchange="calcularMaduracion()">
+                        <option value="betametasona">Betametasona</option>
+                        <option value="dexametasona">Dexametasona</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-top: 10px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="esRescate" onchange="calcularMaduracion()"> 
+                        <label for="esRescate" style="font-weight: normal;">¿Es un esquema de rescate? (Curso previo hace más de 7-14 días)</label>
+                    </div>
+                </div>
+                <div id="resultadoCalc" class="calc-result"></div>
+            `;
+            calcularMaduracion();
+        } else if (seleccion === 'hellp') {
+            area.innerHTML = `
+                <p style="font-size: 0.9em; color: #555;">Ingrese los valores de laboratorio para evaluar Criterios para Síndrome de HELLP.</p>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Plaquetas (células/µL):</label>
+                        <input type="number" id="plaquetas" placeholder="Ej. 85000" oninput="calcularHELLP()">
+                    </div>
+                    <div class="form-group">
+                        <label>TGO / AST (U/L):</label>
+                        <input type="number" id="tgo" placeholder="Ej. 80" oninput="calcularHELLP()">
+                    </div>
+                    <div class="form-group">
+                        <label>TGP / ALT (U/L):</label>
+                        <input type="number" id="tgp" placeholder="Ej. 75" oninput="calcularHELLP()">
+                    </div>
+                    <div class="form-group">
+                        <label>LDH (U/L):</label>
+                        <input type="number" id="ldh" placeholder="Ej. 650" oninput="calcularHELLP()">
+                    </div>
+                </div>
+                <div id="resultadoCalc" class="calc-result">Ingrese los valores para ver la interpretación de HELLP.</div>
+            `;
+        } else if (seleccion === 'ipc') {
+            area.innerHTML = `
+                <p style="font-size: 0.9em; color: #555;">Calcula el índice en muestra aislada de orina.</p>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Proteína en orina (mg/dL):</label>
+                        <input type="number" id="protOrina" oninput="calcularIPC()">
+                    </div>
+                    <div class="form-group">
+                        <label>Creatinina en orina (mg/dL):</label>
+                        <input type="number" id="creatOrina" oninput="calcularIPC()">
+                    </div>
+                </div>
+                <div id="resultadoCalc" class="calc-result">Ingrese los valores.</div>
+            `;
+        } else if (seleccion === 'mgso4') {
+            area.innerHTML = `<div class="form-group"><label>Dosis de mantenimiento:</label><select id="dosisMg" onchange="calcularMgSo4()"><option value="1">1 gramo / hora</option><option value="2">2 gramos / hora</option></select></div><div id="resultadoCalc" class="calc-result"></div>`;
+            calcularMgSo4(); 
+        } else if (seleccion === 'labetalol') {
+            area.innerHTML = `<div id="resultadoCalc" class="calc-result"><strong>LABETALOL IV:</strong>\n20 mg -> 40 mg -> 80 mg (cada 10 min). Dosis máx: 300 mg.</div>`;
+        } else if (seleccion === 'hidralazina') {
+            area.innerHTML = `<div id="resultadoCalc" class="calc-result"><strong>HIDRALAZINA IV:</strong>\n5 mg -> 10 mg -> 10 mg (cada 20 min). Dosis máx: 20-30 mg.</div>`;
+        }
+    }
+
+    // --- NUEVO ALGORITMO: MADURACIÓN PULMONAR ---
+    function calcularMaduracion() {
+        const farmaco = document.getElementById('farmacoMaduracion').value;
+        const esRescate = document.getElementById('esRescate').checked;
+        const res = document.getElementById('resultadoCalc');
+        const semanasInput = document.getElementById('semanas').value;
+        const semanas = parseInt(semanasInput);
+
+        let esquema = "";
+        if (farmaco === 'betametasona') {
+            esquema = "<strong>Betametasona:</strong> 12 mg Intramuscular cada 24 horas (Total: 2 dosis).";
+        } else {
+            esquema = "<strong>Dexametasona:</strong> 6 mg Intramuscular cada 12 horas (Total: 4 dosis).";
+        }
+
+        let indicaciones = "";
+        let advertenciaEdadGestacional = "";
+
+        if (semanas && semanas >= 34 && esRescate) {
+            advertenciaEdadGestacional = `<br><br><span style="color: var(--alert-color); font-weight: bold;">PRECAUCIÓN:</span> La paciente tiene ${semanas} semanas. Los cursos de rescate NO están indicados rutinariamente después de las 34 semanas.`;
+        }
+
+        if (esRescate) {
+            indicaciones = `<span style="color: var(--warning-color); font-weight: bold;">CURSO DE RESCATE INDICADO SI:</span><br>Han pasado más de 7-14 días desde el esquema inicial y persiste un riesgo inminente de parto prematuro en los próximos 7 días (en embarazos < 34 semanas).<br><br>${esquema} ${advertenciaEdadGestacional}`;
+        } else {
+            indicaciones = `<span style="color: var(--success-color); font-weight: bold;">CURSO INICIAL INDICADO:</span><br>Para embarazos entre 24 y 33.6 semanas con riesgo de parto prematuro inminente (hasta 36.6 sem en algunas guías si no lo recibieron antes).<br><br>${esquema}`;
+        }
+
+        res.innerHTML = indicaciones;
+    }
+
+    function calcularHELLP() {
+        const plaquetas = parseFloat(document.getElementById('plaquetas').value);
+        const tgo = parseFloat(document.getElementById('tgo').value);
+        const tgp = parseFloat(document.getElementById('tgp').value);
+        const ldh = parseFloat(document.getElementById('ldh').value);
+        const res = document.getElementById('resultadoCalc');
+
+        if (!plaquetas && !tgo && !tgp && !ldh) {
+            res.innerHTML = "Ingrese los valores para ver la interpretación de HELLP.";
+            return;
+        }
+
+        let critPlaquetas = (plaquetas && plaquetas < 100000);
+        let critHigado = ((tgo && tgo >= 70) || (tgp && tgp >= 70));
+        let critHemolisis = (ldh && ldh >= 600);
+
+        let hallazgos = [];
+        if (critPlaquetas) hallazgos.push("Plaquetopenia severa (< 100k)");
+        else if (plaquetas && plaquetas < 150000) hallazgos.push("Plaquetopenia leve/moderada (< 150k)");
+        if (critHigado) hallazgos.push("Transaminasas elevadas (≥ 70 U/L)");
+        if (critHemolisis) hallazgos.push("LDH elevada / Hemólisis (≥ 600 U/L)");
+
+        let diagnosticoHELLP = "";
+        let colorAlerta = "var(--success-color)";
+        let recomendaciones = "";
+
+        if (critPlaquetas && critHigado && critHemolisis) {
+            diagnosticoHELLP = "SÍNDROME DE HELLP COMPLETO";
+            colorAlerta = "var(--alert-color)";
+            recomendaciones = "¡EMERGENCIA MÉDICA! Requiere estabilización inmediata, Sulfato de Magnesio IV y resolución urgente del embarazo.";
+        } else if (critPlaquetas || critHigado || critHemolisis) {
+            diagnosticoHELLP = "SÍNDROME DE HELLP PARCIAL";
+            colorAlerta = "var(--warning-color)";
+            recomendaciones = "Alerta: Presencia de daño a órgano blanco. Ingreso a vigilancia estricta y planificar vía de parto.";
+        } else if (plaquetas || tgo || tgp || ldh) {
+            diagnosticoHELLP = "SIN CRITERIOS DE HELLP";
+            colorAlerta = "var(--success-color)";
+            recomendaciones = "Laboratorios ingresados dentro de límites de seguridad.";
+        }
+
+        res.innerHTML = `<strong style="color: ${colorAlerta}; font-size: 1.2em;">${diagnosticoHELLP}</strong><br><br><strong>Hallazgos Positivos:</strong> ${hallazgos.length > 0 ? hallazgos.join(" | ") : "Ninguno"}<br><br><strong>Recomendación Clínica:</strong> ${recomendaciones}`;
+    }
+
+    function calcularIPC() {
+        const prot = parseFloat(document.getElementById('protOrina').value);
+        const creat = parseFloat(document.getElementById('creatOrina').value);
+        const res = document.getElementById('resultadoCalc');
+        if (prot > 0 && creat > 0) {
+            const ipc = prot / creat;
+            res.innerHTML = `<strong>Índice:</strong> ${ipc.toFixed(2)} <br> ${ipc >= 0.3 ? "<span style='color:red'>PATOLÓGICO (≥ 0.3)</span>" : "<span style='color:green'>NORMAL (< 0.3)</span>"}`;
+        }
+    }
+
+    function calcularMgSo4() {
+        const dosis = document.getElementById('dosisMg').value;
+        const res = document.getElementById('resultadoCalc');
+        let inf = dosis == "1" ? "50" : "100"; 
+        res.innerHTML = `<strong>SULFATO DE MAGNESIO (ZUSPAN)</strong><br>- Impregnación: 4g en 100cc (20 min).<br>- Mantenimiento (${dosis}g/h): 10g en 500cc. Infundir a <strong>${inf} cc/hr</strong>.`;
+    }
+
+    // --- LÓGICA DEL REPORTE CLÍNICO PRINCIPAL ---
+    let reporteTextoPlano = "";
+
+    function generarPlan() {
+        const nombre = document.getElementById('nombre').value || "Paciente No Identificada";
+        const edad = document.getElementById('edad').value || "N/D";
+        const semanas = document.getElementById('semanas').value || "N/D";
+        const imc = document.getElementById('imc').value || "N/D";
+        const tas = parseInt(document.getElementById('tas').value);
+        const tad = parseInt(document.getElementById('tad').value);
+        const sintomasSeveridad = document.getElementById('sintomasSeveridad').checked;
+        const convulsiones = document.getElementById('convulsiones').checked;
+
+        if (!tas || !tad) {
+            alert("Por favor, ingrese las cifras tensionales.");
+            return;
+        }
+
+        let diagnostico = "";
+        let manejo = "";
+        let esGrave = false;
+
+        if (convulsiones) {
+            esGrave = true;
+            diagnostico = "ECLAMPSIA";
+            manejo = "<ul><li><strong>Soporte Vital:</strong> ABCD, decúbito lateral izquierdo, O2 suplementario.</li><li><strong>Neuroprotección:</strong> Sulfato de Magnesio (Impregnación 4g IV, mantenimiento 1-2g/h).</li><li><strong>Control Antihipertensivo:</strong> Labetalol o Hidralazina IV (Meta: TAS 130-150 / TAD 80-100 mmHg).</li><li><strong>Resolución Obstétrica:</strong> Urgente tras estabilización hemodinámica (plazo < 24h).</li><li><strong>Monitoreo:</strong> Ingreso a UCI, sonda Foley, perfil toxémico urgente.</li></ul>";
+        } else if (tas >= 160 || tad >= 110 || sintomasSeveridad) {
+            esGrave = true;
+            diagnostico = "PREECLAMPSIA CON CRITERIOS DE SEVERIDAD";
+            manejo = "<ul><li><strong>Vigilancia:</strong> Ingreso a Cuidados Especiales/UCI.</li><li><strong>Profilaxis Anticonvulsiva:</strong> Iniciar Sulfato de Magnesio esquema Zuspan.</li><li><strong>Control Antihipertensivo Urgente:</strong> Labetalol IV, Nifedipino VO o Hidralazina IV.</li><li><strong>Laboratorios:</strong> Descartar Síndrome HELLP (Hemograma, enzimas hepáticas, LDH, creatinina).</li><li><strong>Feto:</strong> Corticoides si < 34 semanas. Considerar resolución en 24-48h según evolución.</li></ul>";
+        } else if ((tas >= 140 && tas <= 159) || (tad >= 90 && tad <= 109)) {
+            diagnostico = "HTA GESTACIONAL O PREECLAMPSIA SIN CRITERIOS DE SEVERIDAD";
+            manejo = "<ul><li><strong>Estudio:</strong> Perfil toxémico basal y confirmar proteinuria con Índice Proteína/Creatinina en muestra aislada.</li><li><strong>Tratamiento:</strong> Alfametildopa (250-500mg c/8h) o Labetalol VO.</li><li><strong>Manejo:</strong> Expectante hasta las 37 semanas. Control TA cada 4-6 hrs y vigilancia fetal.</li></ul>";
+        } else {
+            diagnostico = "NORMOTENSIÓN EN EL EMBARAZO";
+            manejo = "<ul><li>Presión arterial normal. Continuar control prenatal y signos de alarma.</li></ul>";
+        }
+
+        const reporteHTML = `
+            <h2 style="color: ${esGrave ? 'var(--alert-color)' : 'var(--primary-color)'}; border-bottom: 2px solid; padding-bottom: 10px;">Reporte de Evaluación</h2>
+            <p><strong>Paciente:</strong> ${nombre} | <strong>Edad:</strong> ${edad} años</p>
+            <p><strong>Gestación:</strong> ${semanas} semanas | <strong>IMC:</strong> ${imc}</p>
+            <p><strong>Cifras Tensionales:</strong> <span style="font-size: 1.2em; font-weight: bold; color: ${esGrave ? 'var(--alert-color)' : '#000'};">${tas} / ${tad} mmHg</span></p>
+            <h3 style="background-color: ${esGrave ? '#fadbd8' : '#d4efdf'}; padding: 10px; border-radius: 5px;">Diagnóstico: ${diagnostico}</h3>
+            <h3>Plan de Manejo Clínico:</h3>
+            ${manejo}
+        `;
+
+        document.getElementById('contenido-reporte').innerHTML = reporteHTML;
+        document.getElementById('resultado').style.display = 'block';
+
+        reporteTextoPlano = `*REPORTE CLÍNICO - THE*\nPaciente: ${nombre}\nEdad: ${edad} | Semanas: ${semanas} | IMC: ${imc}\nTA: ${tas}/${tad} mmHg\n\n*DIAGNÓSTICO:* ${diagnostico}\n\n*PLAN:*\n${manejo.replace(/<\/li>/g, '\n').replace(/<li>
